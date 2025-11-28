@@ -24,7 +24,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
             <div>
               <h1 className="text-xl font-bold text-gray-900">SafeSpace</h1>
               <p className="text-sm text-gray-600 hidden sm:block">
-                AI-Powered Digital Violence Prevention
+                AI-Powered Digital Violence Prevention by Team SafeHaven
               </p>
             </div>
           </div>
