@@ -1,142 +1,242 @@
-import { useState } from 'react';
-import { CheckCircle, Lock, Award, BookOpen } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { toast } from 'sonner';
+import React, { useState } from 'react';
+import { Play, CheckCircle, Clock, BookOpen } from 'lucide-react';
+import Button from '@/components/Button';
+import { EducationalModule } from '@/assets/types';
 
-const modules = [
-  {
-    id: 1,
-    title: 'Understanding Digital Violence',
-    icon: BookOpen,
-    content: 'Digital violence includes cyberbullying, doxxing, and online harassment. It can have serious real-world consequences. This module covers identifying different forms of online abuse.',
-    quiz: [
-      { q: 'What is Doxxing?', a: ['Sharing private info online', 'A type of computer virus', 'A social media challenge'], correct: 0 },
-      { q: 'Is cyberbullying a crime?', a: ['Yes, in many places', 'No, never', 'Only if it causes physical harm'], correct: 0 },
-    ]
-  },
-  {
-    id: 2,
-    title: 'Securing Your Digital Identity',
-    icon: Lock,
-    content: 'Learn to protect your accounts with strong passwords, two-factor authentication (2FA), and privacy settings. Your digital safety starts with a secure foundation.',
-    quiz: [
-      { q: 'What is 2FA?', a: ['Two-Factor Authentication', 'Two-Friend Agreement', 'A fast algorithm'], correct: 0 },
-      { q: 'Which is the strongest password?', a: ['P@ssw0rd123!', 'johndoe1990', 'MyDogIsNamedBuddy'], correct: 0 },
-    ]
-  },
-  {
-    id: 3,
-    title: 'Being an Online Ally',
-    icon: Award,
-    content: 'Discover how to support others facing online harassment. Learn about reporting content, offering support, and creating safer online communities for everyone.',
-    quiz: [
-      { q: 'What should you do if you witness cyberbullying?', a: ['Report it and support the victim', 'Ignore it', 'Join in'], correct: 0 },
-      { q: 'Is it safe to share someone else\'s private messages?', a: ['No, it\'s a breach of privacy', 'Yes, if it\'s funny', 'Only with close friends'], correct: 0 },
-    ]
-  },
-];
+const EducationalModules: React.FC = () => {
+  const [progress, setProgress] = useState<Record<string, number>>({
+    'digital-literacy': 75,
+    'online-safety': 40,
+    'consent-education': 20,
+    'bystander-intervention': 0
+  });
 
-const Quiz = ({ module, onComplete }: { module: typeof modules[0], onComplete: () => void }) => {
-  const [answers, setAnswers] = useState<(number | null)[]>(Array(module.quiz.length).fill(null));
-  const [submitted, setSubmitted] = useState(false);
+  const modules: EducationalModule[] = [
+    {
+      id: 'digital-literacy',
+      title: 'Digital Literacy & Rights',
+      description: 'Understand your digital rights and learn essential online safety practices',
+      duration: '45 min',
+      lessons: 6,
+      icon: BookOpen,
+      category: 'Foundation',
+      progress: 75,
+      completed: false
+    },
+    {
+      id: 'online-safety',
+      title: 'Online Safety Fundamentals',
+      description: 'Learn how to protect yourself from online harassment and cyber threats',
+      duration: '30 min',
+      lessons: 4,
+      icon: BookOpen,
+      category: 'Safety',
+      progress: 40,
+      completed: false
+    },
+    {
+      id: 'consent-education',
+      title: 'Digital Consent & Boundaries',
+      description: 'Understanding consent in digital spaces and setting healthy boundaries',
+      duration: '35 min',
+      lessons: 5,
+      icon: BookOpen,
+      category: 'Relationships',
+      progress: 20,
+      completed: false
+    },
+    {
+      id: 'bystander-intervention',
+      title: 'Bystander Intervention Training',
+      description: 'Learn how to safely intervene when witnessing online harassment',
+      duration: '50 min',
+      lessons: 7,
+      icon: BookOpen,
+      category: 'Community',
+      progress: 0,
+      completed: false
+    }
+  ];
 
-  const handleAnswer = (qIndex: number, aIndex: number) => {
-    if (submitted) return;
-    const newAnswers = [...answers];
-    newAnswers[qIndex] = aIndex;
-    setAnswers(newAnswers);
-  };
-
-  const handleSubmit = () => {
-    setSubmitted(true);
-    const correctAnswers = module.quiz.filter((q, i) => answers[i] === q.correct).length;
-    if (correctAnswers === module.quiz.length) {
-      toast.success('Quiz passed! You earned a badge!');
-      onComplete();
-    } else {
-      toast.error(`You got ${correctAnswers} of ${module.quiz.length} right. Try again!`)
-      setTimeout(() => setSubmitted(false), 2000);
+  const startModule = (moduleId: string) => {
+    const currentProgress = progress[moduleId];
+    if (currentProgress < 100) {
+      const newProgress = Math.min(currentProgress + 25, 100);
+      setProgress(prev => ({
+        ...prev,
+        [moduleId]: newProgress
+      }));
     }
   };
 
+  const overallProgress = Math.round(
+    Object.values(progress).reduce((a, b) => a + b, 0) / Object.keys(progress).length
+  );
+
   return (
-    <div className="mt-4 space-y-4">
-      {module.quiz.map((q, qIndex) => (
-        <div key={qIndex} className="p-4 border rounded-lg bg-gray-50">
-          <p className="font-semibold">{q.q}</p>
-          <div className="space-y-2 mt-2">
-            {q.a.map((option, aIndex) => (
-              <button 
-                key={aIndex} 
-                onClick={() => handleAnswer(qIndex, aIndex)}
-                className={`w-full text-left p-2 rounded-md border transition-all ${
-                  answers[qIndex] === aIndex ? 'bg-[#007AFF] text-white' : 'bg-white hover:bg-gray-100'
-                } ${
-                  submitted && (aIndex === q.correct ? 'border-green-500 bg-green-100' : (answers[qIndex] === aIndex ? 'border-red-500 bg-red-100' : ''))
-                }`}>
-                {option}
-              </button>
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold text-gray-900">Educational Modules</h1>
+        <p className="text-gray-600 mt-2">Interactive digital literacy and safety education content</p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Overall Progress</h3>
+          <div className="flex items-center space-x-6">
+            <div className="relative w-24 h-24">
+              <svg className="w-full h-full" viewBox="0 0 36 36">
+                <path
+                  d="M18 2.0845
+                    a 15.9155 15.9155 0 0 1 0 31.831
+                    a 15.9155 15.9155 0 0 1 0 -31.831"
+                  fill="none"
+                  stroke="#E5E7EB"
+                  strokeWidth="3"
+                />
+                <path
+                  d="M18 2.0845
+                    a 15.9155 15.9155 0 0 1 0 31.831
+                    a 15.9155 15.9155 0 0 1 0 -31.831"
+                  fill="none"
+                  stroke="#3B82F6"
+                  strokeWidth="3"
+                  strokeDasharray={`${overallProgress}, 100`}
+                />
+              </svg>
+              <div className="absolute inset-0 flex items-center justify-center">
+                <span className="text-2xl font-bold text-gray-900">{overallProgress}%</span>
+              </div>
+            </div>
+            <div>
+              <p className="text-gray-600">
+                {modules.filter(m => progress[m.id] === 100).length} of {modules.length} modules completed
+              </p>
+              <p className="text-sm text-gray-500 mt-1">Keep learning to improve your safety skills</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Learning Stats</h3>
+          <div className="space-y-3">
+            {modules.map(module => (
+              <div key={module.id} className="flex items-center justify-between">
+                <span className="text-gray-700">{module.title}</span>
+                <div className="flex items-center space-x-2">
+                  {progress[module.id] === 100 ? (
+                    <div className="text-green-600">
+                      <CheckCircle />
+                    </div>
+                  ) : (
+                    <div className="text-yellow-600">
+                      <Clock />
+                    </div>
+                  )}
+                  <span className="text-sm text-gray-600">{progress[module.id]}%</span>
+                </div>
+              </div>
             ))}
           </div>
         </div>
-      ))}
-      <button onClick={handleSubmit} disabled={answers.includes(null)} className="w-full bg-[#007AFF] text-white py-2 px-4 rounded-md disabled:bg-gray-400">Submit Quiz</button>
-    </div>
-  )
-}
+      </div>
 
-export default function EducationalModules() {
-  const [completed, setCompleted] = useState<number[]>([]);
-  const [activeModule, setActiveModule] = useState<number | null>(null);
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {modules.map((module) => {
+          const Icon = module.icon;
+          const isCompleted = progress[module.id] === 100;
+          
+          return (
+            <div key={module.id} className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+              <div className="flex items-start justify-between mb-4">
+                <div className="p-3 bg-blue-50 rounded-lg">
+                  <div className="text-blue-600" style={{ width: '24px', height: '24px' }}>
+                    <Icon />
+                  </div>
+                </div>
+                <span className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-sm font-medium">
+                  {module.category}
+                </span>
+              </div>
 
-  const handleComplete = (id: number) => {
-    if (!completed.includes(id)) {
-      setCompleted([...completed, id]);
-    }
-    setActiveModule(null);
-  };
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">{module.title}</h3>
+              <p className="text-gray-600 mb-4">{module.description}</p>
 
-  const isUnlocked = (id: number) => {
-    if (id === 1) return true;
-    return completed.includes(id - 1);
-  };
+              <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
+                <span>{module.duration}</span>
+                <span>{module.lessons} lessons</span>
+              </div>
 
-  return (
-    <div className="space-y-8">
-        <div className="text-center">
-            <h1 className="text-4xl font-bold text-[#1C1C1E] mb-2">Educational Modules</h1>
-            <p className="text-lg text-gray-600">Empower yourself with knowledge. Complete modules to earn badges.</p>
-        </div>
+              <div className="mb-4">
+                <div className="flex justify-between text-sm text-gray-600 mb-2">
+                  <span>Progress</span>
+                  <span>{progress[module.id]}%</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div 
+                    className="bg-blue-600 h-2 rounded-full transition-all duration-500"
+                    style={{ width: `${progress[module.id]}%` }}
+                  />
+                </div>
+              </div>
 
-        <div className="grid md:grid-cols-3 gap-8">
-            {modules.map(module => (
-                <motion.div 
-                    key={module.id} 
-                    className={`p-6 rounded-xl shadow-lg transition-all border-2 ${isUnlocked(module.id) ? 'bg-white cursor-pointer hover:shadow-2xl hover:-translate-y-1' : 'bg-gray-200 opacity-70'}`}
-                    onClick={() => isUnlocked(module.id) && setActiveModule(activeModule === module.id ? null : module.id)}
-                >
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-4">
-                            <module.icon className={`w-10 h-10 ${isUnlocked(module.id) ? 'text-[#007AFF]' : 'text-gray-500'}`} />
-                            <h2 className="text-xl font-bold">{module.title}</h2>
-                        </div>
-                        {completed.includes(module.id) ? (
-                            <CheckCircle className="w-8 h-8 text-green-500" />
-                        ) : (
-                            !isUnlocked(module.id) && <Lock className="w-8 h-8 text-gray-500" />
-                        )}
+              <Button
+                onClick={() => startModule(module.id)}
+                variant={isCompleted ? 'success' : 'primary'}
+                className="w-full flex items-center justify-center space-x-2"
+              >
+                {isCompleted ? (
+                  <>
+                    <div className="text-white">
+                      <CheckCircle />
                     </div>
-                    <p className="mt-4 text-gray-600">{module.content}</p>
-                    <AnimatePresence>
-                        {activeModule === module.id && (
-                            <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}>
-                                <Quiz module={module} onComplete={() => handleComplete(module.id)} />
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
-                </motion.div>
-            ))}
+                    <span>Completed</span>
+                  </>
+                ) : (
+                  <>
+                    <div className="text-white">
+                      <Play />
+                    </div>
+                    <span>Start Module</span>
+                  </>
+                )}
+              </Button>
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Additional Resources</h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <a href="#" className="flex items-center space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+            <div className="p-2 bg-blue-50 rounded">
+              <div className="text-blue-600" style={{ width: '20px', height: '20px' }}>
+                <BookOpen />
+              </div>
+            </div>
+            <span className="font-medium text-gray-900">Safety Guidelines</span>
+          </a>
+          <a href="#" className="flex items-center space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+            <div className="p-2 bg-green-50 rounded">
+              <div className="text-green-600" style={{ width: '20px', height: '20px' }}>
+                <BookOpen />
+              </div>
+            </div>
+            <span className="font-medium text-gray-900">Video Tutorials</span>
+          </a>
+          <a href="#" className="flex items-center space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+            <div className="p-2 bg-purple-50 rounded">
+              <div className="text-purple-600" style={{ width: '20px', height: '20px' }}>
+                <BookOpen />
+              </div>
+            </div>
+            <span className="font-medium text-gray-900">Research Papers</span>
+          </a>
         </div>
+      </div>
     </div>
   );
-}
+};
+
+export default EducationalModules;
