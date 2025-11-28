@@ -258,8 +258,8 @@ Together, we bring expertise in software development, AI/ML, UI/UX design, and s
 
 - **GitHub Repository:** https://github.com/Cynthia-M-M/safespace-ui-kit
 - **Pitch Deck:** https://gamma.app/docs/SafeSpace-0vrhpvr6qsyoeqx
-- **Demo Video:** [YouTube - Coming Soon]
-- **Live Demo:** [Coming Soon]
+- **Demo Video:** [https://youtu.be/jesTOyxywf0]
+- **Live Demo:** [<video controls src="safespace powerpoint.pptx.mp4" title="Title"></video>]
 
 ---
 

@@ -14,17 +14,35 @@ const threatDescriptions = {
     critical: 'Immediate threat detected. Activate emergency response now.',
 };
 
+// Placeholder function for AI threat detection
+// TODO: Replace with actual AI service integration
+const detectThreatLevel = async (): Promise<ThreatLevel> => {
+  // Simulate AI processing delay
+  await new Promise(resolve => setTimeout(resolve, 100));
+  // For now, return random level as demo
+  // In production, this would analyze user content, social media, etc.
+  const randomIndex = Math.floor(Math.random() * threatLevels.length);
+  return threatLevels[randomIndex];
+};
+
 export default function Home() {
   const [threatLevel, setThreatLevel] = useState<ThreatLevel>('calm');
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      const randomIndex = Math.floor(Math.random() * threatLevels.length);
-      setThreatLevel(threatLevels[randomIndex]);
+    const interval = setInterval(async () => {
+      try {
+        const newLevel = await detectThreatLevel();
+        console.log(`[SafeSpace Debug] Threat level updated from ${threatLevel} to ${newLevel}`);
+        setThreatLevel(newLevel);
+      } catch (error) {
+        console.error('[SafeSpace Debug] Error detecting threat level:', error);
+        // Fallback to calm on error
+        setThreatLevel('calm');
+      }
     }, 5000); // Update every 5 seconds to simulate real-time analysis
 
     return () => clearInterval(interval);
-  }, []);
+  }, [threatLevel]);
 
   return (
     <div className="space-y-8">

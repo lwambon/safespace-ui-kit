@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Toaster } from 'sonner';
+import ErrorBoundary from './components/ErrorBoundary';
 import Layout from './Layout/Layout';
 import Home from './pages/Home';
 import EducationalModules from './pages/EducationalModules';
@@ -14,22 +15,24 @@ import Settings from './pages/Settings';
 
 export default function App() {
   return (
-    <Router>
-      <Layout>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/education" element={<EducationalModules />} />
-          <Route path="/support" element={<SurvivorSupport />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/detection" element={<RealTimeDetection />} />
-          <Route path="/emergency" element={<EmergencyResponse />} />
-          <Route path="/community" element={<CommunityModeration />} />
-          <Route path="/anonymous-support" element={<AnonymousSupport />} />
-          <Route path="/analytics" element={<AnalyticsDashboard />} />
-          <Route path="/settings" element={<Settings />} />
-        </Routes>
-      </Layout>
-      <Toaster richColors position="top-right" />
-    </Router>
+    <ErrorBoundary>
+      <Router>
+        <Layout>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/education" element={<EducationalModules />} />
+            <Route path="/support" element={<SurvivorSupport />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/detection" element={<RealTimeDetection />} />
+            <Route path="/emergency" element={<EmergencyResponse />} />
+            <Route path="/community" element={<CommunityModeration />} />
+            <Route path="/anonymous-support" element={<AnonymousSupport />} />
+            <Route path="/analytics" element={<AnalyticsDashboard />} />
+            <Route path="/settings" element={<Settings />} />
+          </Routes>
+        </Layout>
+        <Toaster richColors position="top-right" />
+      </Router>
+    </ErrorBoundary>
   );
 }

@@ -11,12 +11,15 @@ export default function EmergencyResponse() {
   useEffect(() => {
     let timer: NodeJS.Timeout;
     if (modalOpen && countdown > 0) {
+      console.log(`[SafeSpace Debug] Emergency alert countdown: ${countdown}`);
       timer = setTimeout(() => setCountdown(countdown - 1), 1000);
     } else if (modalOpen && countdown === 0 && !isSending) {
+      console.log('[SafeSpace Debug] Starting emergency alert send process');
       setIsSending(true);
       toast.loading('Sending alert to emergency contacts...', { id: 'alert' });
       // Simulate API call
       setTimeout(() => {
+        console.log('[SafeSpace Debug] Emergency alert sent successfully');
         toast.success('Alert sent successfully!', { id: 'alert' });
         setModalOpen(false);
         setCountdown(5);
