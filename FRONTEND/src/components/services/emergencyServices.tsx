@@ -62,7 +62,7 @@ export const emergencyService = {
    * Get emergency hotline for a country
    */
   async getHotline(country: string): Promise<string> {
-    const response = await apiClient.get(
+    const response = await apiClient.get<{ hotline_number: string }>(
       `/api/emergency/hotline?country=${encodeURIComponent(country)}`
     );
     return response.hotline_number;
