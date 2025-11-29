@@ -22,6 +22,8 @@ const threatDescriptions = {
     critical: 'Immediate threat detected. Activate emergency response now.',
 };
 
+const threatLevels: ThreatLevel[] = ['calm', 'low', 'medium', 'high', 'critical'];
+
 // Placeholder function for AI threat detection
 // TODO: Replace with actual AI service integration
 const detectThreatLevel = async (): Promise<ThreatLevel> => {

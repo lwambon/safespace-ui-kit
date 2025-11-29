@@ -81,9 +81,9 @@ class APIClient {
     const data = await response.json().catch(() => ({}));
 
     if (!response.ok) {
-      const error: ApiError = new Error(
-        (data as Record<string, unknown>)?.error || (data as Record<string, unknown>)?.message || `HTTP Error: ${response.status}`
-      );
+      const rawMsg = (data as Record<string, unknown>)?.error || (data as Record<string, unknown>)?.message;
+      const messageStr = typeof rawMsg === 'string' ? rawMsg : `HTTP Error: ${response.status}`;
+      const error: ApiError = new Error(String(messageStr));
       error.status = response.status;
       error.data = data;
       throw error;
