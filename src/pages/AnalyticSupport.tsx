@@ -1,32 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Download, Share, Printer, TrendingUp, TrendingDown } from 'lucide-react';
 import Button from '@/components/Button';
+import { analyticsService } from '@/components/services/analyticsServices';
 
-const AnalyticsDashboard: React.FC = () => {
+const AnalyticsDashboard = () => {
   const [timeRange, setTimeRange] = useState('7d');
   const [selectedMetric, setSelectedMetric] = useState('incidents');
-
-  const metrics = [
-    { id: 'incidents', label: 'Incident Reports', value: '1,234', change: '+12%', trend: 'up' as const },
-    { id: 'prevention', label: 'Prevention Rate', value: '89%', change: '+5%', trend: 'up' as const },
-    { id: 'response', label: 'Avg Response Time', value: '2.3s', change: '-15%', trend: 'down' as const },
-    { id: 'users', label: 'Protected Users', value: '15,678', change: '+8%', trend: 'up' as const },
-  ];
-
-  const incidentTypes = [
-    { type: 'Online Harassment', count: 456, percentage: 37 },
-    { type: 'Hate Speech', count: 289, percentage: 23 },
-    { type: 'Cyberbullying', count: 234, percentage: 19 },
-    { type: 'Non-consensual Sharing', count: 156, percentage: 13 },
-    { type: 'Other', count: 99, percentage: 8 },
-  ];
-
-  const demographicData = [
-    { category: 'Age 18-24', percentage: 35 },
-    { category: 'Age 25-34', percentage: 28 },
-    { category: 'Age 35-44', percentage: 20 },
-    { category: 'Age 45+', percentage: 17 },
-  ];
+  const [metrics, setMetrics] = useState([]);
+  const [incidentTypes, setIncidentTypes] = useState([]);
+  const [demographicData, setDemographicData] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const timeRangeOptions = [
     { value: '24h', label: '24H' },
@@ -35,9 +18,40 @@ const AnalyticsDashboard: React.FC = () => {
     { value: '90d', label: '90D' },
   ];
 
-  const SimpleBarChart = ({ data, color = 'blue' }: { data: number[]; color?: string }) => {
+  useEffect(() => {
+    loadDashboardData();
+  }, [timeRange]);
+
+  const loadDashboardData = async () => {
+    setLoading(true);
+    try {
+      const [metricsData, incidentTypesData, demographicsData] = await Promise.all([
+        analyticsService.getDashboardMetrics(timeRange),
+        analyticsService.getIncidentTypes(timeRange),
+        analyticsService.getDemographics(timeRange)
+      ]);
+
+      // Transform metrics data for display
+      const metricsArray = [
+        { id: 'incidents', label: 'Incident Reports', ...metricsData.incidents },
+        { id: 'prevention', label: 'Prevention Rate', ...metricsData.prevention },
+        { id: 'response', label: 'Avg Response Time', ...metricsData.response },
+        { id: 'users', label: 'Protected Users', ...metricsData.users }
+      ];
+
+      setMetrics(metricsArray);
+      setIncidentTypes(incidentTypesData);
+      setDemographicData(demographicsData);
+    } catch (error) {
+      console.error('Error loading dashboard data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const SimpleBarChart = ({ data, color = 'blue' }) => {
     const maxValue = Math.max(...data);
-    const colorClasses: Record<string, string> = {
+    const colorClasses = {
       blue: 'bg-blue-500',
       green: 'bg-green-500',
       red: 'bg-red-500',
@@ -58,6 +72,14 @@ const AnalyticsDashboard: React.FC = () => {
       </div>
     );
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-lg text-gray-600">Loading dashboard data...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

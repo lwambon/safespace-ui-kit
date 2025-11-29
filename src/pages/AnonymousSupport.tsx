@@ -2,19 +2,103 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Send, Phone, Download, Shield } from 'lucide-react';
 import Button from '@/components/Button';
 import { SupportMessage } from '@/assets/types';
+import { toast } from 'sonner';
 
 const AnonymousSupport: React.FC = () => {
-  const [messages, setMessages] = useState<SupportMessage[]>([
-    { 
-      id: '1', 
-      text: "Hello, I'm here to listen. You can share anything you're comfortable with. This is a safe, anonymous space.", 
-      sender: 'support', 
-      timestamp: new Date() 
-    },
-  ]);
+  const [messages, setMessages] = useState<SupportMessage[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [resources, setResources] = useState<{
+    crisisHotlines: string[];
+    localSupport: string[];
+    onlineResources: string[];
+    safetyTips: string[];
+  } | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Initialize session and load resources
+  useEffect(() => {
+    initializeSession();
+    loadResources();
+  }, []);
+
+  const initializeSession = async () => {
+    try {
+      const response = await fetch('/api/support/session', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      if (response.ok) {
+        const data = await response.json() as { sessionId: string; messages: SupportMessage[] };
+        setSessionId(data.sessionId);
+        setMessages(data.messages);
+      } else {
+        toast.error('Failed to initialize support session');
+        // Fallback to local messages
+        setMessages([{
+          id: '1', 
+          text: "Hello, I'm here to listen. You can share anything you're comfortable with. This is a safe, anonymous space.", 
+          sender: 'support', 
+          timestamp: new Date() 
+        }]);
+      }
+    } catch (error) {
+      console.error('Error initializing session:', error);
+      toast.error('Error starting support session');
+      // Fallback to local messages
+      setMessages([{
+        id: '1', 
+        text: "Hello, I'm here to listen. You can share anything you're comfortable with. This is a safe, anonymous space.", 
+        sender: 'support', 
+        timestamp: new Date() 
+      }]);
+    }
+  };
+
+  const loadResources = async () => {
+    try {
+      const response = await fetch('/api/support/resources');
+      if (response.ok) {
+        const data = await response.json() as {
+          crisisHotlines: string[];
+          localSupport: string[];
+          onlineResources: string[];
+          safetyTips: string[];
+        };
+        setResources(data);
+      }
+    } catch (error) {
+      console.error('Error loading resources:', error);
+      // Fallback resources
+      setResources({
+        crisisHotlines: [
+          'National Domestic Violence Hotline: 1-800-799-7233',
+          'Crisis Text Line: Text HOME to 741741',
+          'RAINN Sexual Assault Hotline: 1-800-656-4673'
+        ],
+        localSupport: [
+          'Find local counseling services',
+          'Support groups in your area',
+          'Legal assistance resources'
+        ],
+        onlineResources: [
+          'Safety planning tools',
+          'Educational materials',
+          'Community forums'
+        ],
+        safetyTips: [
+          'Use private browsing mode',
+          'Clear chat history if needed',
+          'Don\'t share identifying information',
+          'Trust your instincts'
+        ]
+      });
+    }
+  };
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -24,7 +108,7 @@ const AnonymousSupport: React.FC = () => {
     scrollToBottom();
   }, [messages]);
 
-  const handleSendMessage = (e: React.FormEvent) => {
+  const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newMessage.trim()) return;
 
@@ -34,55 +118,103 @@ const AnonymousSupport: React.FC = () => {
       sender: 'user',
       timestamp: new Date()
     };
+    
+    // Optimistically add user message
     setMessages(prev => [...prev, userMessage]);
     setNewMessage('');
-
     setIsTyping(true);
-    setTimeout(() => {
-      const responses = [
-        "Thank you for sharing that with me. How are you feeling right now?",
-        "I understand this must be difficult. You're not alone in this.",
-        "That sounds really challenging. Would you like to explore some resources that might help?",
-        "I'm here to support you. Take your time, there's no pressure.",
-        "Your feelings are completely valid. Thank you for trusting me with this."
-      ];
-      const supportMessage: SupportMessage = {
-        id: (Date.now() + 1).toString(),
-        text: responses[Math.floor(Math.random() * responses.length)],
-        sender: 'support',
-        timestamp: new Date()
-      };
-      setMessages(prev => [...prev, supportMessage]);
-      setIsTyping(false);
-    }, 2000);
+
+    try {
+      if (sessionId) {
+        const response = await fetch(`/api/support/session/${sessionId}/messages`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ text: newMessage }),
+        });
+
+        if (response.ok) {
+          // The support response will be added via the real-time update
+        } else {
+          throw new Error('Failed to send message');
+        }
+      } else {
+        // Fallback to local response if no session
+        setTimeout(() => {
+          const responses = [
+            "Thank you for sharing that with me. How are you feeling right now?",
+            "I understand this must be difficult. You're not alone in this.",
+            "That sounds really challenging. Would you like to explore some resources that might help?",
+            "I'm here to support you. Take your time, there's no pressure.",
+            "Your feelings are completely valid. Thank you for trusting me with this."
+          ];
+          const supportMessage: SupportMessage = {
+            id: (Date.now() + 1).toString(),
+            text: responses[Math.floor(Math.random() * responses.length)],
+            sender: 'support',
+            timestamp: new Date()
+          };
+          setMessages(prev => [...prev, supportMessage]);
+          setIsTyping(false);
+        }, 2000);
+      }
+    } catch (error) {
+      console.error('Error sending message:', error);
+      // Fallback to local response
+      setTimeout(() => {
+        const responses = [
+          "Thank you for sharing that with me. How are you feeling right now?",
+          "I understand this must be difficult. You're not alone in this.",
+          "That sounds really challenging. Would you like to explore some resources that might help?",
+          "I'm here to support you. Take your time, there's no pressure.",
+        ];
+        const supportMessage: SupportMessage = {
+          id: (Date.now() + 1).toString(),
+          text: responses[Math.floor(Math.random() * responses.length)],
+          sender: 'support',
+          timestamp: new Date()
+        };
+        setMessages(prev => [...prev, supportMessage]);
+        setIsTyping(false);
+      }, 2000);
+    }
   };
 
-  const resources = [
-    {
-      title: 'Crisis Hotlines',
-      items: [
-        'National Domestic Violence Hotline: 1-800-799-7233',
-        'Crisis Text Line: Text HOME to 741741',
-        'RAINN Sexual Assault Hotline: 1-800-656-4673'
-      ]
-    },
-    {
-      title: 'Local Support',
-      items: [
-        'Find local counseling services',
-        'Support groups in your area',
-        'Legal assistance resources'
-      ]
-    },
-    {
-      title: 'Online Resources',
-      items: [
-        'Safety planning tools',
-        'Educational materials',
-        'Community forums'
-      ]
+  const exportChat = async () => {
+    if (!sessionId) {
+      toast.error('No active session to export');
+      return;
     }
-  ];
+
+    try {
+      const response = await fetch(`/api/support/session/${sessionId}/export`, {
+        method: 'POST',
+      });
+
+      if (response.ok) {
+        const data = await response.json() as Record<string, unknown>;
+        
+        // Create and download file
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `support-chat-${sessionId}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        
+        toast.success('Chat exported successfully');
+      } else {
+        throw new Error('Export failed');
+      }
+    } catch (error) {
+      console.error('Error exporting chat:', error);
+      toast.error('Failed to export chat');
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -109,7 +241,12 @@ const AnonymousSupport: React.FC = () => {
                   </div>
                 </div>
                 <div className="flex space-x-2">
-                  <Button variant="secondary" size="sm" className="flex items-center space-x-1">
+                  <Button 
+                    variant="secondary" 
+                    size="sm" 
+                    className="flex items-center space-x-1"
+                    onClick={exportChat}
+                  >
                     <Download className="h-3 w-3" />
                     <span>Export</span>
                   </Button>
@@ -138,7 +275,7 @@ const AnonymousSupport: React.FC = () => {
                     <p className={`text-xs mt-1 ${
                       message.sender === 'user' ? 'text-blue-100' : 'text-gray-500'
                     }`}>
-                      {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      {new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </p>
                   </div>
                 </div>
@@ -201,31 +338,38 @@ const AnonymousSupport: React.FC = () => {
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
             <h3 className="font-semibold text-gray-900 mb-3">Support Resources</h3>
             <div className="space-y-4">
-              {resources.map((category, index) => (
-                <div key={index}>
-                  <h4 className="font-medium text-gray-900 text-sm mb-2">{category.title}</h4>
-                  <ul className="space-y-1">
-                    {category.items.map((item, itemIndex) => (
-                      <li key={itemIndex} className="text-sm text-gray-600 flex items-start space-x-1">
-                        <span>•</span>
-                        <span>{item}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
+              {resources && Object.entries(resources).map(([category, items]) => (
+                category !== 'safetyTips' && (
+                  <div key={category}>
+                    <h4 className="font-medium text-gray-900 text-sm mb-2">
+                      {category === 'crisisHotlines' ? 'Crisis Hotlines' :
+                       category === 'localSupport' ? 'Local Support' :
+                       category === 'onlineResources' ? 'Online Resources' : category}
+                    </h4>
+                    <ul className="space-y-1">
+                      {(items as string[]).map((item, itemIndex) => (
+                        <li key={itemIndex} className="text-sm text-gray-600 flex items-start space-x-1">
+                          <span>•</span>
+                          <span>{item}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )
               ))}
             </div>
           </div>
 
-          <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
-            <h4 className="font-semibold text-blue-900 mb-2">Safety Tips</h4>
-            <ul className="space-y-1 text-sm text-blue-800">
-              <li>• Use private browsing mode</li>
-              <li>• Clear chat history if needed</li>
-              <li>• Don't share identifying information</li>
-              <li>• Trust your instincts</li>
-            </ul>
-          </div>
+          {resources?.safetyTips && (
+            <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+              <h4 className="font-semibold text-blue-900 mb-2">Safety Tips</h4>
+              <ul className="space-y-1 text-sm text-blue-800">
+                {resources.safetyTips.map((tip: string, index: number) => (
+                  <li key={index}>• {tip}</li>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
       </div>
     </div>

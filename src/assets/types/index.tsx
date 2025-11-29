@@ -1,3 +1,4 @@
+import { LucideIcon } from 'lucide-react';
 export interface User {
   id: string;
   name: string;
@@ -28,17 +29,20 @@ export interface EmergencyReport {
   location?: string;
 }
 
+// Update t
 export interface EducationalModule {
   id: string;
   title: string;
   description: string;
   duration: string;
   lessons: number;
-  progress: number;
+  icon: LucideIcon;
   category: string;
+  progress: number;
   completed: boolean;
-    icon: React.ComponentType;
+  topic?: string; // Add this line to connect with backend topics
 }
+
 
 export interface SupportMessage {
   id: string;

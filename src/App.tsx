@@ -1,6 +1,10 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Toaster } from 'sonner';
+<<<<<<< HEAD
 import ErrorBoundary from './components/ErrorBoundary';
+=======
+import { AuthProvider } from '@/lib/AuthContext';
+>>>>>>> 6256764 (connecting frontend with backend)
 import Layout from './Layout/Layout';
 import Home from './pages/Home';
 import EducationalModules from './pages/EducationalModules';
@@ -15,7 +19,11 @@ import Settings from './pages/Settings';
 
 export default function App() {
   return (
+<<<<<<< HEAD
     <ErrorBoundary>
+=======
+    <AuthProvider>
+>>>>>>> 6256764 (connecting frontend with backend)
       <Router>
         <Layout>
           <Routes>
@@ -33,6 +41,10 @@ export default function App() {
         </Layout>
         <Toaster richColors position="top-right" />
       </Router>
+<<<<<<< HEAD
     </ErrorBoundary>
+=======
+    </AuthProvider>
+>>>>>>> 6256764 (connecting frontend with backend)
   );
 }

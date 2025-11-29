@@ -2,38 +2,28 @@ import React, { useState, useEffect } from 'react';
 import { Play, Pause, AlertTriangle, CheckCircle, Clock } from 'lucide-react';
 import Button from '@/components/Button';
 import { Incident } from '@/assets/types';
+import { moderationService, HarassmentDetection } from '@/components/services/moderationService';
+import { reportService } from '@/components/services/reportService';
+import { toast } from 'sonner';
+
+interface DetectedThreat {
+  id: string;
+  type: 'harassment' | 'bullying' | 'hate_speech' | 'spam';
+  severity: 'low' | 'medium' | 'high' | 'immediate';
+  content: string;
+  timestamp: string;
+  status: 'pending' | 'under_review' | 'resolved';
+  confidence?: number;
+}
 
 const RealTimeDetection: React.FC = () => {
   const [monitoringActive, setMonitoringActive] = useState(true);
-  const [detectedIncidents, setDetectedIncidents] = useState<Incident[]>([
-    { 
-      id: '1', 
-      type: 'harassment', 
-      severity: 'medium', 
-      content: 'Inappropriate language detected in general chat', 
-      timestamp: '2:30 PM', 
-      status: 'under_review'  
-    },
-    { 
-      id: '2', 
-      type: 'bullying', 
-      severity: 'high', 
-      content: 'Potential bullying pattern identified in user messages', 
-      timestamp: '2:25 PM', 
-      status: 'pending' 
-    },
-    { 
-      id: '3', 
-      type: 'hate_speech', 
-      severity: 'medium', 
-      content: 'Hate speech keywords detected and filtered', 
-      timestamp: '2:15 PM', 
-      status: 'resolved' 
-    },
-  ]);
+  const [detectedIncidents, setDetectedIncidents] = useState<DetectedThreat[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [testContent, setTestContent] = useState('');
 
   // Calculate threat level based on current incidents
-  const calculateThreatLevel = (incidents: Incident[]): 'low' | 'medium' | 'high' => {
+  const calculateThreatLevel = (incidents: DetectedThreat[]): 'low' | 'medium' | 'high' => {
     const hasHighSeverity = incidents.some(incident => 
       incident.severity === 'high' && incident.status !== 'resolved'
     );
@@ -48,63 +38,90 @@ const RealTimeDetection: React.FC = () => {
 
   const threatLevel = calculateThreatLevel(detectedIncidents);
 
-  useEffect(() => {
-    let interval: NodeJS.Timeout;
-    if (monitoringActive) {
-      interval = setInterval(() => {
-        if (Math.random() > 0.7) {
-          const types: Incident['type'][] = ['harassment', 'bullying', 'hate_speech'];
-          const severities: Incident['severity'][] = ['low', 'medium', 'high'];
-          const newIncident: Incident = {
-            id: Date.now().toString(),
-            type: types[Math.floor(Math.random() * types.length)],
-            severity: severities[Math.floor(Math.random() * severities.length)],
-            content: 'New potential threat pattern detected',
-            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-            status: 'pending'
-          };
-          setDetectedIncidents(prev => [newIncident, ...prev.slice(0, 9)]);
-        }
-      }, 5000);
+  // Test content detection
+  const handleTestDetection = async () => {
+    if (!testContent.trim()) {
+      toast.error('Please enter some text to analyze');
+      return;
     }
-    return () => clearInterval(interval);
-  }, [monitoringActive]);
 
-  const getSeverityColor = (severity: Incident['severity']) => {
+    try {
+      setLoading(true);
+      const result = await moderationService.detectHarassment(testContent);
+      
+      if (result.detected) {
+        const newThreat: DetectedThreat = {
+          id: Date.now().toString(),
+          type: (result.type as any) || 'harassment',
+          severity: (result.severity as any) || 'medium',
+          content: testContent,
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          status: 'pending',
+          confidence: 0.85
+        };
+        setDetectedIncidents(prev => [newThreat, ...prev.slice(0, 9)]);
+        toast.success('Threat detected and logged');
+      } else {
+        toast.success('Content is safe - no threats detected');
+      }
+      setTestContent('');
+    } catch (error) {
+      console.error('Error detecting harassment:', error);
+      toast.error('Error analyzing content');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Resolve incident
+  const handleResolveIncident = async (incidentId: string) => {
+    try {
+      setDetectedIncidents(prev => 
+        prev.map(incident => 
+          incident.id === incidentId 
+            ? { ...incident, status: 'resolved' }
+            : incident
+        )
+      );
+      toast.success('Incident marked as resolved');
+    } catch (error) {
+      toast.error('Error resolving incident');
+    }
+  };
+
+  // Report incident
+  const handleReportIncident = async (incident: DetectedThreat) => {
+    try {
+      await moderationService.reportContent(incident.id, `Harassment: ${incident.type}`);
+      setDetectedIncidents(prev => 
+        prev.map(inc => 
+          inc.id === incident.id 
+            ? { ...inc, status: 'under_review' }
+            : inc
+        )
+      );
+      toast.success('Incident reported to moderators');
+    } catch (error) {
+      toast.error('Error reporting incident');
+    }
+  };
+
+  const getSeverityColor = (severity: DetectedThreat['severity']) => {
     switch (severity) {
-      case 'high': return 'bg-red-100 text-red-800 border-red-200';
+      case 'immediate': return 'bg-red-100 text-red-800 border-red-200';
+      case 'high': return 'bg-orange-100 text-orange-800 border-orange-200';
       case 'medium': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
       case 'low': return 'bg-green-100 text-green-800 border-green-200';
       default: return 'bg-gray-100 text-gray-800 border-gray-200';
     }
   };
 
-  const getStatusIcon = (status: Incident['status']) => {
+  const getStatusIcon = (status: DetectedThreat['status']) => {
     switch (status) {
       case 'resolved': return <CheckCircle className="h-4 w-4 text-green-600" />;
       case 'under_review': return <Clock className="h-4 w-4 text-blue-600" />;
       default: return <AlertTriangle className="h-4 w-4 text-yellow-600" />;
     }
-  };
-
-  const handleResolveIncident = (incidentId: string) => {
-    setDetectedIncidents(prev => 
-      prev.map(incident => 
-        incident.id === incidentId 
-          ? { ...incident, status: 'resolved' }
-          : incident
-      )
-    );
-  };
-
-  const handleReviewIncident = (incidentId: string) => {
-    setDetectedIncidents(prev => 
-      prev.map(incident => 
-        incident.id === incidentId 
-          ? { ...incident, status: 'under_review' }
-          : incident
-      )
-    );
   };
 
   return (
@@ -206,9 +223,9 @@ const RealTimeDetection: React.FC = () => {
                         <Button 
                           size="sm" 
                           variant="primary"
-                          onClick={() => handleReviewIncident(incident.id)}
+                          onClick={() => handleReportIncident(incident)}
                         >
-                          Review
+                          Report
                         </Button>
                       )}
                       <Button 
@@ -217,7 +234,7 @@ const RealTimeDetection: React.FC = () => {
                         onClick={() => handleResolveIncident(incident.id)}
                         disabled={incident.status === 'resolved'}
                       >
-                        {incident.status === 'resolved' ? 'Resolved' : 'Mark Resolved'}
+                        {incident.status === 'resolved' ? 'Resolved' : 'Resolve'}
                       </Button>
                     </div>
                   </div>
@@ -228,6 +245,26 @@ const RealTimeDetection: React.FC = () => {
         </div>
 
         <div className="space-y-6">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Test Content Detection</h3>
+            <div className="space-y-3">
+              <textarea
+                value={testContent}
+                onChange={(e) => setTestContent(e.target.value)}
+                placeholder="Paste or type content to analyze for harassment..."
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                rows={4}
+              />
+              <Button
+                onClick={handleTestDetection}
+                disabled={loading || !testContent.trim()}
+                className="w-full"
+              >
+                {loading ? 'Analyzing...' : 'Analyze Content'}
+              </Button>
+            </div>
+          </div>
+
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Detection Settings</h3>
             <div className="space-y-4">
