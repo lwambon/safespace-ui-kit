@@ -316,3 +316,8 @@ We envision a digital world where everyone, especially women and girls, can part
 *Power Hacks 2025 Submission*  
 *Challenge: Safety by Design*  
 *Last updated: November 28, 2025*
+
+
+
+### live frontend server 
+(https://safespace-frontend-vtfm.onrender.com)

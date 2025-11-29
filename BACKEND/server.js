@@ -9,9 +9,12 @@ dotenv.config();
 
 const app = express();
 const server = http.createServer(app);
+const DEFAULT_FRONTEND = 'https://safespace-frontend-vtfm.onrender.com';
+const allowedOrigin = process.env.CORS_ORIGIN || DEFAULT_FRONTEND;
+
 const io = new Server(server, {
   cors: {
-    origin: process.env.CORS_ORIGIN || '*',
+    origin: allowedOrigin,
     methods: ['GET', 'POST', 'PUT', 'DELETE']
   }
 });
@@ -24,8 +27,8 @@ const { errorHandler } = require('./middleware/errorMiddleware');
 
 // Parse JSON bodies
 app.use(express.json());
-// Enable CORS
-app.use(cors());
+// Enable CORS for frontend origin
+app.use(cors({ origin: allowedOrigin }));
 // Log requests
 app.use(logger);
 

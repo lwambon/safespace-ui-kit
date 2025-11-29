@@ -1,0 +1,14 @@
+{
+  "name": "safespace-root",
+  "private": true,
+  "version": "0.0.0",
+  "scripts": {
+    "build": "cd BACKEND && npm install",
+    "start": "cd BACKEND && npm start",
+    "build:frontend": "cd FRONTEND && npm install && npm run build",
+    "start:frontend": "cd FRONTEND && npm run preview"
+  },
+  "engines": {
+    "node": "22.x"
+  }
+}
