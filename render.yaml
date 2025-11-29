@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: safespace-backend
+    env: node
+    plan: starter
+    branch: main
+    region: oregon
+    root: BACKEND
+    buildCommand: npm install
+    startCommand: npm start
+
+  - type: static_site
+    name: safespace-frontend
+    branch: main
+    root: FRONTEND
+    buildCommand: npm install && npm run build
+    publishPath: dist
+    env: node
+    plan: starter
