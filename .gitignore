@@ -1,0 +1,14 @@
+# Ignore node modules and build artifacts
+node_modules
+BACKEND/node_modules
+FRONTEND/node_modules
+dist
+.DS_Store
+.env
+.env.local
+.env.*.local
+npm-debug.log*
+package-lock.json
+bun.lockb
+.vscode
+.idea
