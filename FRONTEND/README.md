@@ -1,13 +1,4 @@
-# SafeSpace 🛡️
-
-**AI-Powered Digital Violence Prevention Platform**
-
-[![Power Hacks 2025](https://img.shields.io/badge/Power%20Hacks-2025-purple)](https://powerhacks.africa)
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-
-> **UNiTE to End Digital Violence Against All Women & Girls**
-
-SafeSpace is a comprehensive digital safety platform that empowers individuals to prevent, detect, and respond to online harassment and violence. Built by **Team SafeHaven** during Power Hacks 2025, our mission is to make digital spaces safer for everyone, with a special focus on protecting women and girls across Africa.
+This file has been archived as part of documentation consolidation. See `DOCUMENTATION.md` for a single, consolidated guide.
 
 ---
 

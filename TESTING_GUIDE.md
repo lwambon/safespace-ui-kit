@@ -1,4 +1,4 @@
-# SafeSpace Integration Testing Guide
+This document has been consolidated into `DOCUMENTATION.md`. See that file for full testing steps.
 
 ## Quick Start
 
