@@ -30,6 +30,11 @@ If you host the frontend on Render, create a separate static site (or Node servi
 
 These values align the two services and ensure the frontend can call the backend. Replace `<your-backend-service>` with your Render backend service name.
 
+Important notes about Render configuration:
+
+- If your Render backend service is configured with **Root Directory** set to `BACKEND`, Render will run `npm install && npm run build` there. We added a `build` script in `BACKEND/package.json` to avoid the "Missing script: 'build'" error. Alternatively, set the Build Command for the Render backend service to: `npm install`.
+- If you want to build everything from the repository root, set Render's service root to `/` and use `npm run build` as the Build Command (root `build` runs both BACKEND install and FRONTEND build). If using this option, keep `Start Command` as `npm run start` so the backend starts correctly.
+
 Advanced: If you prefer to build and deploy the frontend from this monorepo, use these scripts:
 - `npm run build:frontend` to build the frontend
 - `npm run start:frontend` to preview the frontend
