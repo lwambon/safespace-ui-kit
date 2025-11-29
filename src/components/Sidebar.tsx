@@ -27,6 +27,9 @@ const Sidebar: React.FC<SidebarProps> = ({ open, setOpen }) => {
     { path: '/support', icon: Heart, label: 'Anonymous Support' },
     { path: '/analytics', icon: BarChart3, label: 'Analytics Dashboard' },
     { path: '/settings', icon: Settings, label: 'Settings' },
+    { path: '/accordion-example', icon: GraduationCap, label: 'Help Accordion' },
+    { path: '/accordion-admin', icon: Users, label: 'Accordion Admin' },
+    { path: '/components-demo', icon: BarChart3, label: 'Component Demos' },
   ];
 
   return (
